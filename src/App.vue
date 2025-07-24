@@ -48,8 +48,11 @@ function NextBite() {
   </header>
 
   <!-- 🌟 NEW IMAGE CONTAINER -->
-  <div v-if="!isFullPageView && isScoop" class="image-container">
-    <img src="@/assets/scoop_result.png" alt="scoop-result" class="preview-image" />
+  <div v-if="!isFullPageView && isScoop" class="scoop-container">
+    <h2 class="scoop-result">Scooping Result</h2>
+    <div class="image-container">
+      <img src="@/assets/scoop_result.png" alt="scoop-result" class="preview-image" />
+    </div>
   </div>
 
   <div class="bottom-bar">
@@ -131,17 +134,28 @@ function NextBite() {
     object-fit: contain;
   }
   .finish-btn {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  padding: 12px 28px;
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
   }
   .finish-btn:hover {
-  background-color: #c0392b;
+    background-color: #c0392b;
+  }
+  .scoop-result{
+    font-size: 1.6rem;
+    color: #333;
+    margin-bottom: 1.2rem;
+  }
+  .scoop-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem auto;
   }
 </style>

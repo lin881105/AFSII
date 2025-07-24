@@ -13,6 +13,7 @@ const sliderValue = ref(0)
 const currentImage = ref('')
 const currentLabel = ref('')
 const currentValueText = ref('0.0')
+store.biteSize = 0.0
 
 
 // Image map
@@ -206,7 +207,7 @@ watch(sliderValue, (val) => {
     margin-bottom: 20px;
     }
     .bottom-bar {
-    margin-top: auto;
+    margin-top: 40px;
     padding: 20px 0;
     width: 100%;
     display: flex;
