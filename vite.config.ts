@@ -24,5 +24,16 @@ export default defineConfig({
 })
 
 module.exports = {
-publicPath: '/hello-vue-app/'
+  publicPath: '/hello-vue-app/',
+  plugins: [
+    vue(),
+    vueJsx(),
+    vueDevTools(),
+  ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    },
+  },
+
 }
