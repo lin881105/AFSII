@@ -1,161 +1,286 @@
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router'
+import { ref } from 'vue'
 import { useBiteSizeStore } from '@/stores/biteSize'
-import { ref, computed } from 'vue'
 
-// store
 const store = useBiteSizeStore()
 
-// router
-const router = useRouter()
-const route = useRoute()
+// Four-step flow control
+const step = ref(1)
+const sliderValue = ref(store.biteSize || 0)
+const currentImage = ref(new URL('@/assets/r0.png', import.meta.url).href)
+const scoopCount = ref(0)
 
-// logic
-const isAdjust = ref(false)
-const isScoop = ref(false)
-
-const isFullPageView = computed(() => route.path === '/interactive-interface')
-
-function goToInteractiveInterface() {
-  isAdjust.value = false
-  router.push('/interactive-interface')
+const riceLevels = [
+  { v: 0.0, src: new URL('@/assets/r0.png', import.meta.url).href },
+  { v: 0.2, src: new URL('@/assets/r033.png', import.meta.url).href },
+  { v: 0.4, src: new URL('@/assets/r066.png', import.meta.url).href },
+  { v: 0.6, src: new URL('@/assets/r1.png', import.meta.url).href },
+  { v: 0.8, src: new URL('@/assets/r133.png', import.meta.url).href },
+  { v: 1.0, src: new URL('@/assets/r166.png', import.meta.url).href },
+]
+function nextBite() {
+  scoopCount.value++
+  sliderValue.value = store.biteSize
+  updateImage(sliderValue.value)
 }
-
-function AdjustEvent() {
-  isAdjust.value = true
-}
-
-function ScoopEvent() {
-  isScoop.value = true
-}
-
-function NextBite() {
-  isScoop.value = false
+function updateImage(val: number) {
+  let closest = riceLevels[0]
+  let diff = Math.abs(val - closest.v)
+  riceLevels.forEach(level => {
+    const d = Math.abs(val - level.v)
+    if (d < diff) {
+      closest = level
+      diff = d
+    }
+  })
+  currentImage.value = closest.src
+  store.biteSize = val
 }
 </script>
 
 <template>
-  <header v-if="!isFullPageView" class="app-header">
-    <h2 class="bite-size-display">
-      Current Bite-size: <span class="value">{{ store.biteSize.toFixed(1) }}</span>
-    </h2>
-    <div class="button-group">
-      <button v-if="!isAdjust" class="primary" @click="AdjustEvent">Adjust Bite-size</button>
-      <button v-if="!isAdjust" class="primary" @click="ScoopEvent">Scoop</button>
-      <button v-if="isAdjust" class="secondary" @click="goToInteractiveInterface">Interactive Interface</button>
-      <button v-if="isAdjust" class="secondary">Language Interface</button>
+  <div class="layout">
+    <!-- Step navigation bar (Vertical) -->
+    <div class="step-tracker-vertical">
+      <div :class="['step', step >= 1 && 'active']">1. Adjust</div>
+      <div :class="['step', step >= 2 && 'active']">2. Select Mode</div>
+      <div :class="['step', step >= 3 && 'active']">3. Size</div>
+      <div :class="['step', step === 4 && 'active']">4. Feeding</div>
     </div>
-  </header>
 
-  <!-- 🌟 NEW IMAGE CONTAINER -->
-  <div v-if="!isFullPageView && isScoop" class="scoop-container">
-    <h2 class="scoop-result">Scooping Result</h2>
-    <div class="image-container">
-      <img src="@/assets/scoop_result.png" alt="scoop-result" class="preview-image" />
+    <div class="main-content">
+      <!-- Step 1 -->
+      <div v-if="step === 1" class="step-content">
+        <h2>Please choose an action</h2>
+        <button class="primary large" @click="step = 2">Adjust Bite-size</button>
+        <button class="secondary large" @click="step = 3">Use Last Setting</button>
+      </div>
+
+      <!-- Step 2 -->
+      <div v-if="step === 2" class="step-content">
+        <h2>Select Interface</h2>
+        <button class="secondary large" @click="step = 3">Interactive Interface</button>
+        <button class="secondary large">Language Interface</button>
+      </div>
+
+      <!-- Step 3 -->
+      <div v-if="step === 3" class="step-content">
+        <h2 class="title">Bite-size Controller</h2>
+        <div class="controller-container">
+          <div class="image-container">
+            <img :src="currentImage" alt="rice" class="rice-image" />
+          </div>
+
+          <div class="value-display">{{ sliderValue.toFixed(1) }}</div>
+
+          <div class="slider-container">
+            <input
+              type="range"
+              class="slider"
+              min="0"
+              max="1"
+              step="0.2"
+              v-model.number="sliderValue"
+              @input="updateImage(sliderValue)"
+            />
+            <div class="range-labels">
+              <span>0.0</span>
+              <span>0.5</span>
+              <span>1.0</span>
+            </div>
+          </div>
+
+          <div class="instructions">
+            Slide to adjust bite-size (0.0–1.0)
+          </div>
+        </div>
+
+        <button class="primary large" @click="step = 4">Finish</button>
+      </div>
+
+      <!-- Step 4 -->
+      <div v-if="step === 4" class="scoop-container">
+        <h2 class="scoop-result">Scooping Result</h2>
+        <div class="image-container">
+          <img src="@/assets/scoop_result.png" alt="scoop-result" class="preview-image" />
+        </div>
+        <button class="secondary large" @click="step = 1">Adjust</button>
+        <button class="finish-btn" @click="nextBite">Next Bite</button>
+        <div style="margin-top: 1rem; font-size: 1.1rem; color: #555">
+          Bite Count: <strong>{{ scoopCount }}</strong>
+        </div>
+      </div>
     </div>
   </div>
-
-  <div class="bottom-bar">
-    <button v-if="!isFullPageView && isScoop" class="finish-btn" @click="NextBite">NextBite</button>
-  </div>
-  <RouterView />
 </template>
 
 <style scoped>
-  .app-header {
-    background-color: #f8f9fa;
-    padding: 2rem 1.5rem;
-    border-bottom: 1px solid #ddd;
-    text-align: center;
-    font-family: 'Segoe UI', sans-serif;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  }
+.layout {
+  display: flex;
+}
 
-  .bite-size-display {
-    font-size: 1.6rem;
-    color: #333;
-    margin-bottom: 1.2rem;
-  }
+.step-tracker-vertical {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 180px;
+  height: 100vh;
+  background-color: #f9f9f9;
+  border-right: 1px solid #ccc;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  z-index: 1000;
+}
 
-  .bite-size-display .value {
-    font-weight: bold;
-    color: #007bff;
-  }
+.step {
+  padding: 12px;
+  border-radius: 10px;
+  background-color: #e2e2e2;
+  font-weight: bold;
+  font-size: 16px;
+  text-align: center;
+}
 
-  .button-group {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem;
-  }
+.step.active {
+  background-color: #007bff;
+  color: white;
+}
 
-  button {
-    font-size: 1rem;
-    padding: 0.7rem 1.2rem;
-    border-radius: 8px;
-    cursor: pointer;
-    border: none;
-    transition: background-color 0.2s, box-shadow 0.2s;
-  }
+.main-content {
+  margin-left: 200px;
+  width: calc(100% - 200px);
+}
 
-  button.primary {
-    background-color: #007bff;
-    color: white;
-  }
+.step-content,
+.scoop-container {
+  text-align: center;
+  padding: 2rem 2rem 2rem;
+}
 
-  button.primary:hover {
-    background-color: #0056b3;
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
-  }
+.controller-container {
+  background: #fff5e0;
+  border-radius: 20px;
+  padding: 40px 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+}
 
-  button.secondary {
-    background-color: #e2e6ea;
-    color: #333;
-  }
+.title {
+  font-size: 26px;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+}
 
-  button.secondary:hover {
-    background-color: #d6d8db;
-    box-shadow: 0 0 6px rgba(150, 150, 150, 0.2);
-  }
-  .image-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 2rem auto;
-    max-width: 100%;
-    height: 280px;
-  }
+.rice-image {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: opacity 0.3s ease;
+}
 
-  .preview-image {
-    max-height: 100%;
-    max-width: 90%;
-    border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    object-fit: contain;
-  }
-  .finish-btn {
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    padding: 12px 28px;
-    border-radius: 10px;
-    font-weight: bold;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  .finish-btn:hover {
-    background-color: #c0392b;
-  }
-  .scoop-result{
-    font-size: 1.6rem;
-    color: #333;
-    margin-bottom: 1.2rem;
-  }
-  .scoop-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 2rem auto;
-  }
+.value-display {
+  font-size: 38px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  background: linear-gradient(45deg, #007bff, #0056b3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.slider-container {
+  margin: 30px 0 20px;
+}
+
+.slider {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #ddd, #bbb);
+  outline: none;
+  appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #007bff;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #007bff;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #555;
+}
+
+.instructions {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #666;
+}
+
+button.primary,
+button.secondary {
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  margin: 12px;
+}
+
+button.primary {
+  background-color: #007bff;
+  color: white;
+}
+
+button.secondary {
+  background-color: #e2e6ea;
+  color: #333;
+}
+
+.finish-btn {
+  background-color: #e74c3c;
+  color: white;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 5rem;
+  margin-left: 10px;
+}
+
+.finish-btn:hover {
+  background-color: #c0392b;
+}
 </style>
