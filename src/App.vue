@@ -36,8 +36,9 @@ function NextBite() {
 
 <template>
   <header v-if="!isFullPageView" class="app-header">
+    <h2>Assitive Feeding System</h2>
     <h2 class="bite-size-display">
-      Current Bite-size: <span class="value">{{ store.biteSize.toFixed(1) }}</span>
+      Current Bite-size: <span class="value">{{ store.biteSize.toFixed(1) }} </span> (debug only)
     </h2>
     <div class="button-group">
       <button v-if="!isAdjust" class="primary" @click="AdjustEvent">Adjust Bite-size</button>
@@ -72,9 +73,9 @@ function NextBite() {
   }
 
   .bite-size-display {
-    font-size: 1.6rem;
+    font-size: 1rem;
     color: #333;
-    margin-bottom: 1.2rem;
+    margin-bottom: 1rem;
   }
 
   .bite-size-display .value {

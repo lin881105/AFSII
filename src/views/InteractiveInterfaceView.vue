@@ -59,7 +59,7 @@ watch(sliderValue, (val) => {
         <img :src="currentImage" :alt="currentLabel" class="rice-image" />
       </div>
 
-      <div class="value-display">{{ currentValueText }}</div>
+      <!-- <div class="value-display">{{ currentValueText }}</div> -->
 
       <div class="slider-container">
         <input
@@ -70,15 +70,15 @@ watch(sliderValue, (val) => {
           step="0.2"
           v-model="sliderValue"
         />
-        <div class="range-labels">
+        <!-- <div class="range-labels">
           <span>0.0</span>
           <span>0.5</span>
           <span>1.0</span>
-        </div>
+        </div> -->
       </div>
 
       <div class="instructions">
-        Slide to adjust bite-size（0.0–1.0）
+        Slide to adjust bite-size
       </div>
     </div>
 
