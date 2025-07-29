@@ -283,4 +283,23 @@ button.secondary {
 .finish-btn:hover {
   background-color: #c0392b;
 }
+
+button.primary:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+button.secondary:hover {
+  background-color: #d6d8db;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+button.finish-btn:hover {
+  background-color: #c0392b;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
 </style>
