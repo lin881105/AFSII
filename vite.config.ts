@@ -7,6 +7,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/AFSII/',
   plugins: [
     vue(),
     vueJsx(),
@@ -22,18 +23,3 @@ export default defineConfig({
     port: 5173
   }
 })
-
-module.exports = {
-  publicPath: '/hello-vue-app/',
-  plugins: [
-    vue(),
-    vueJsx(),
-    vueDevTools(),
-  ],
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    },
-  },
-
-}
