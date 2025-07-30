@@ -6,18 +6,21 @@ export const useBiteSessionStore = defineStore('biteSession', {
     biteValue: 0.0,
     biteImage: '',
     finished: false,
+    count: 0,
   }),
   actions: {
     submitBite(val: number, img: string) {
       this.biteValue = val
       this.biteImage = img
       this.finished = true
-      localStorage.setItem('biteSession', JSON.stringify(this.$state))  // ⬅️ 同步到 localStorage
+      this.count += 1
+      localStorage.setItem('biteSession', JSON.stringify(this.$state))
     },
     resetSession() {
       this.biteValue = 0.0
       this.biteImage = ''
       this.finished = false
+      this.count = 0
       localStorage.removeItem('biteSession')
     },
     loadFromLocalStorage() {

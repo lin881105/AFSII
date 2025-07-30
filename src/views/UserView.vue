@@ -2,11 +2,11 @@
 import { ref } from 'vue'
 import { useBiteSizeStore } from '@/stores/biteSize'
 import { useBiteSessionStore } from '@/stores/biteSession'
+import { watch } from 'vue'
 
 const store = useBiteSizeStore()
 const sessionStore = useBiteSessionStore()
 
-// Four-step flow control
 const step = ref(1)
 const sliderValue = ref(store.biteSize || 0)
 const currentImage = ref(new URL('@/assets/f5.png', import.meta.url).href)
@@ -44,13 +44,17 @@ function updateImage(val: number) {
   })
   currentImage.value = closest.src
   store.biteSize = val
-  console.log('Selected image:', closest.src)
 }
+
+watch(step, (newVal) => {
+  if (newVal === 4) {
+    sessionStore.submitBite(sliderValue.value, currentImage.value)
+  }
+})
 </script>
 
 <template>
   <div class="layout">
-    <!-- Step navigation bar (Vertical) -->
     <div class="step-tracker-vertical">
       <div :class="['step', step >= 1 && 'active']">1. Adjust</div>
       <div :class="['step', step >= 2 && 'active']">2. Select Mode</div>
@@ -59,30 +63,25 @@ function updateImage(val: number) {
     </div>
 
     <div class="main-content">
-      <!-- Step 1 -->
       <div v-if="step === 1" class="step-content">
         <h2>Please choose an action</h2>
         <button class="primary large" @click="step = 2">Adjust Bite-size</button>
         <button class="secondary large" @click="step = 3">Use Last Setting</button>
       </div>
 
-      <!-- Step 2 -->
       <div v-if="step === 2" class="step-content">
         <h2>Select Interface</h2>
         <button class="secondary large" @click="step = 3">Interactive Interface</button>
         <button class="secondary large">Language Interface</button>
       </div>
 
-      <!-- Step 3 -->
       <div v-if="step === 3" class="step-content">
         <h2 class="title">Bite-size Controller</h2>
         <div class="controller-container">
           <div class="image-container">
             <img :src="currentImage" alt="rice" class="rice-image" />
           </div>
-
           <div class="value-display">{{ sliderValue.toFixed(1) }}</div>
-
           <div class="slider-container">
             <input
               type="range"
@@ -99,21 +98,15 @@ function updateImage(val: number) {
               <span>1.0</span>
             </div>
           </div>
-
           <div class="instructions">
             Slide to adjust bite-size (0.0–1.0)
           </div>
         </div>
-
         <button class="primary large" @click="step = 4">Finish</button>
       </div>
 
-      <!-- Step 4 -->
       <div v-if="step === 4" class="scoop-container">
-        <h2 class="scoop-result">Scooping Result</h2>
-        <div class="image-container">
-          <img src="@/assets/scoop_result.png" alt="scoop-result" class="preview-image" />
-        </div>
+        <h2 class="scoop-result">Feeding...</h2>
         <button class="secondary large" @click="step = 1">Adjust</button>
         <button class="finish-btn" @click="nextBite">Next Bite</button>
         <div style="margin-top: 1rem; font-size: 1.1rem; color: #555">
@@ -199,7 +192,7 @@ function updateImage(val: number) {
   font-size: 38px;
   font-weight: bold;
   margin-bottom: 10px;
-  background: linear-gradient(45deg, 	#ffa940, 	#ff6b3d);
+  background: linear-gradient(45deg, #ffa940, #ff6b3d);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -223,7 +216,7 @@ function updateImage(val: number) {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: 	#ffa940;
+  background: #ffa940;
   cursor: pointer;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s;
@@ -290,10 +283,6 @@ button.secondary {
   margin-left: 10px;
 }
 
-.finish-btn:hover {
-  background-color: #c0392b;
-}
-
 button.primary:hover {
   background-color: #0056b3;
   transform: scale(1.05);
@@ -311,5 +300,4 @@ button.finish-btn:hover {
   transform: scale(1.05);
   transition: all 0.2s ease;
 }
-
 </style>
