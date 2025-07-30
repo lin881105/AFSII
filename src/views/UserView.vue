@@ -4,6 +4,7 @@ import { useBiteSizeStore } from '@/stores/biteSize'
 import { useBiteSessionStore } from '@/stores/biteSession'
 
 const store = useBiteSizeStore()
+const sessionStore = useBiteSessionStore()
 
 // Four-step flow control
 const step = ref(1)
@@ -29,6 +30,7 @@ function nextBite() {
   scoopCount.value++
   sliderValue.value = store.biteSize
   updateImage(sliderValue.value)
+  sessionStore.submitBite(sliderValue.value, currentImage.value)
 }
 function updateImage(val: number) {
   let closest = riceLevels[0]

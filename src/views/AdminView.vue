@@ -1,6 +1,18 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useBiteSessionStore } from '@/stores/biteSession'
+
 const store = useBiteSessionStore()
+
+onMounted(() => {
+  store.loadFromLocalStorage()
+
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'biteSession') {
+      store.loadFromLocalStorage()
+    }
+  })
+})
 </script>
 
 <template>
