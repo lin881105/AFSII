@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 import { useBiteSizeStore } from '@/stores/biteSize'
 import { useBiteSessionStore } from '@/stores/biteSession'
-import { watch } from 'vue'
 
 const store = useBiteSizeStore()
 const sessionStore = useBiteSessionStore()
@@ -11,6 +10,8 @@ const step = ref(1)
 const sliderValue = ref(store.biteSize || 0)
 const currentImage = ref(new URL('@/assets/f5.png', import.meta.url).href)
 const scoopCount = ref(0)
+const pendingBiteValue = ref(0)
+const pendingImage = ref('')
 
 const riceLevels = [
   { v: 0.0, src: new URL('@/assets/f0.PNG', import.meta.url).href },
@@ -27,11 +28,19 @@ const riceLevels = [
 ]
 
 function nextBite() {
-  scoopCount.value++
   sliderValue.value = store.biteSize
   updateImage(sliderValue.value)
-  sessionStore.submitBite(sliderValue.value, currentImage.value)
+  pendingBiteValue.value = sliderValue.value
+  pendingImage.value = currentImage.value
+  step.value = 5
 }
+
+function confirmBite() {
+  scoopCount.value++
+  sessionStore.submitBite(pendingBiteValue.value, pendingImage.value)
+  step.value = 4
+}
+
 function updateImage(val: number) {
   let closest = riceLevels[0]
   let diff = Math.abs(val - closest.v)
@@ -46,12 +55,13 @@ function updateImage(val: number) {
   store.biteSize = val
 }
 
-watch(step, (newVal) => {
-  if (newVal === 4) {
-    sessionStore.submitBite(sliderValue.value, currentImage.value)
-  }
-})
+function handleAdjust() {
+  sessionStore.resetSession()
+  localStorage.setItem('biteSession', JSON.stringify(sessionStore.$state))
+  step.value = 1
+}
 </script>
+
 
 <template>
   <div class="layout">
@@ -107,13 +117,20 @@ watch(step, (newVal) => {
 
       <div v-if="step === 4" class="scoop-container">
         <h2 class="scoop-result">Feeding...</h2>
-        <button class="secondary large" @click="step = 1">Adjust</button>
+        <button class="secondary large" @click="handleAdjust">Adjust</button>
         <button class="finish-btn" @click="nextBite">Next Bite</button>
         <div style="margin-top: 1rem; font-size: 1.1rem; color: #555">
           Bite Count: <strong>{{ scoopCount }}</strong>
         </div>
       </div>
     </div>
+  </div>
+  <div v-if="step === 5" class="step-content">
+    <h2>Confirm this bite?</h2>
+    <img :src="pendingImage" alt="preview" class="rice-image" style="max-width: 300px;" />
+    <p style="font-size: 1.5rem;">Bite Size: {{ pendingBiteValue.toFixed(1) }}</p>
+    <button class="primary large" @click="confirmBite">Confirm</button>
+    <button class="secondary large" @click="step = 4">Cancel</button>
   </div>
 </template>
 
