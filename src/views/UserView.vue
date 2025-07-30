@@ -2,16 +2,22 @@
 import { ref } from 'vue'
 import { useBiteSizeStore } from '@/stores/biteSize'
 import { useBiteSessionStore } from '@/stores/biteSession'
+import axios from 'axios'
 
 const store = useBiteSizeStore()
 const sessionStore = useBiteSessionStore()
 
 const step = ref(1)
 const sliderValue = ref(store.biteSize || 0)
+const interfaceMode = ref<'interactive' | 'language' | null>(null)
 const currentImage = ref(new URL('@/assets/f5.png', import.meta.url).href)
 const scoopCount = ref(0)
 const pendingBiteValue = ref(0)
 const pendingImage = ref('')
+const instruction = ref('')
+const loading = ref(false)
+const error = ref('')
+
 
 const riceLevels = [
   { v: 0.0, src: new URL('@/assets/f0.PNG', import.meta.url).href },
@@ -60,6 +66,35 @@ function handleAdjust() {
   localStorage.setItem('biteSession', JSON.stringify(sessionStore.$state))
   step.value = 1
 }
+
+async function handleLanguageAdjust() {
+  if (!instruction.value.trim()) {
+    error.value = 'Please enter an instruction.'
+    return
+  }
+  loading.value = true
+  error.value = ''
+  try {
+    const resp = await axios.post('api/gpt', {
+      prompt: `Instruction: "${instruction.value}". Return a single number between 0.0–1.0 (one decimal).`,
+      model: 'gpt-4'
+    })
+    const content = resp.data.message?.trim()
+    const num = parseFloat(content)
+    if (isNaN(num) || num < 0 || num > 1) {
+      throw new Error(`GPT returned invalid number: "${content}"`)
+    }
+    sliderValue.value = parseFloat(num.toFixed(1))
+    updateImage(sliderValue.value)
+    store.biteSize = sliderValue.value
+    step.value = 4
+  } catch (err: any) {
+    error.value = err.response?.data?.error ?? err.message
+  } finally {
+    loading.value = false
+  }
+}
+
 </script>
 
 
@@ -81,11 +116,11 @@ function handleAdjust() {
 
       <div v-if="step === 2" class="step-content">
         <h2>Select Interface</h2>
-        <button class="secondary large" @click="step = 3">Interactive Interface</button>
-        <button class="secondary large">Language Interface</button>
+        <button class="secondary large" @click="step = 3; interfaceMode='interactive'">Interactive Interface</button>
+        <button class="secondary large" @click="step = 3; interfaceMode='language'">Language Interface</button>
       </div>
 
-      <div v-if="step === 3" class="step-content">
+      <div v-if="step === 3 && interfaceMode === 'interactive'" class="step-content">
         <h2 class="title">Bite-size Controller</h2>
         <div class="controller-container">
           <div class="image-container">
@@ -113,6 +148,16 @@ function handleAdjust() {
           </div>
         </div>
         <button class="primary large" @click="step = 4">Finish</button>
+      </div>
+
+      <div v-else-if="step === 3 && interfaceMode === 'language'" class="step-content">
+        <h2>Language Interface</h2>
+        <p>Enter instruction (e.g. “make it smaller”)</p>
+        <textarea v-model="instruction" rows="3"></textarea>
+        <button @click="handleLanguageAdjust" :disabled="loading">
+          {{ loading ? 'Adjusting…' : 'Submit' }}
+        </button>
+        <div v-if="error" class="error">{{ error }}</div>
       </div>
 
       <div v-if="step === 4" class="scoop-container">
