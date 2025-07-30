@@ -18,14 +18,19 @@ store.biteSize = 0.0
 
 // Image map
 const riceLevels = [
-  { v: 0.00, src: new URL('@/assets/r0.png', import.meta.url).href },
-  { v: 0.20, src: new URL('@/assets/r033.png', import.meta.url).href },
-  { v: 0.40, src: new URL('@/assets/r066.png', import.meta.url).href },
-  { v: 0.60, src: new URL('@/assets/r1.png', import.meta.url).href },
-  { v: 0.80, src: new URL('@/assets/r133.png', import.meta.url).href },
-  { v: 1.00, src: new URL('@/assets/r166.png', import.meta.url).href },
-//   { v: 1.00, src: new URL('@/assets/r2.png', import.meta.url).href, label: '滿滿米飯' }
+  { v: 0.0, src: new URL('@/assets/f0.PNG', import.meta.url).href },
+  { v: 0.1, src: new URL('@/assets/f1.PNG', import.meta.url).href },
+  { v: 0.2, src: new URL('@/assets/f2.PNG', import.meta.url).href },
+  { v: 0.3, src: new URL('@/assets/f3.PNG', import.meta.url).href },
+  { v: 0.4, src: new URL('@/assets/f4.PNG', import.meta.url).href },
+  { v: 0.5, src: new URL('@/assets/f5.PNG', import.meta.url).href },
+  { v: 0.6, src: new URL('@/assets/f6.PNG', import.meta.url).href },
+  { v: 0.7, src: new URL('@/assets/f7.PNG', import.meta.url).href },
+  { v: 0.8, src: new URL('@/assets/f8.PNG', import.meta.url).href },
+  { v: 0.9, src: new URL('@/assets/f9.PNG', import.meta.url).href },
+  { v: 1.0, src: new URL('@/assets/f10.PNG', import.meta.url).href }
 ]
+
 currentImage.value = riceLevels[0].src
 currentValueText.value = riceLevels[0].v.toFixed(1)
 
@@ -67,7 +72,7 @@ watch(sliderValue, (val) => {
           class="slider"
           min="0"
           max="1"
-          step="0.2"
+          step="0.1"
           v-model="sliderValue"
         />
         <!-- <div class="range-labels">

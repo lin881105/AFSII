@@ -1,40 +1,5 @@
-<script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router'
-import { useBiteSizeStore } from '@/stores/biteSize'
-import { ref, computed } from 'vue'
-
-// store
-const store = useBiteSizeStore()
-
-// router
-const router = useRouter()
-const route = useRoute()
-
-// logic
-const isAdjust = ref(false)
-const isScoop = ref(false)
-
-const isFullPageView = computed(() => route.path === '/interactive-interface')
-
-function goToInteractiveInterface() {
-  isAdjust.value = false
-  router.push('/interactive-interface')
-}
-
-function AdjustEvent() {
-  isAdjust.value = true
-}
-
-function ScoopEvent() {
-  isScoop.value = true
-}
-
-function NextBite() {
-  isScoop.value = false
-}
-</script>
-
 <template>
+<<<<<<< HEAD
   <header v-if="!isFullPageView" class="app-header">
     <h2>Assitive Feeding System</h2>
     <h2 class="bite-size-display">
@@ -160,3 +125,7 @@ function NextBite() {
     margin: 2rem auto;
   }
 </style>
+=======
+  <router-view />
+</template>
+>>>>>>> origin/1verUI
