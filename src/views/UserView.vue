@@ -20,20 +20,22 @@ const error = ref('')
 
 
 const riceLevels = [
-  { v: 0.0, src: new URL('@/assets/f0.PNG', import.meta.url).href },
-  { v: 0.1, src: new URL('@/assets/f1.PNG', import.meta.url).href },
-  { v: 0.2, src: new URL('@/assets/f2.PNG', import.meta.url).href },
-  { v: 0.3, src: new URL('@/assets/f3.PNG', import.meta.url).href },
-  { v: 0.4, src: new URL('@/assets/f4.PNG', import.meta.url).href },
-  { v: 0.5, src: new URL('@/assets/f5.PNG', import.meta.url).href },
-  { v: 0.6, src: new URL('@/assets/f6.PNG', import.meta.url).href },
-  { v: 0.7, src: new URL('@/assets/f7.PNG', import.meta.url).href },
-  { v: 0.8, src: new URL('@/assets/f8.PNG', import.meta.url).href },
-  { v: 0.9, src: new URL('@/assets/f9.PNG', import.meta.url).href },
-  { v: 1.0, src: new URL('@/assets/f10.PNG', import.meta.url).href }
+  { v: 0.0, src: new URL('@/assets/f0.png', import.meta.url).href },
+  { v: 0.1, src: new URL('@/assets/f1.png', import.meta.url).href },
+  { v: 0.2, src: new URL('@/assets/f2.png', import.meta.url).href },
+  { v: 0.3, src: new URL('@/assets/f3.png', import.meta.url).href },
+  { v: 0.4, src: new URL('@/assets/f4.png', import.meta.url).href },
+  { v: 0.5, src: new URL('@/assets/f5.png', import.meta.url).href },
+  { v: 0.6, src: new URL('@/assets/f6.png', import.meta.url).href },
+  { v: 0.7, src: new URL('@/assets/f7.png', import.meta.url).href },
+  { v: 0.8, src: new URL('@/assets/f8.png', import.meta.url).href },
+  { v: 0.9, src: new URL('@/assets/f9.png', import.meta.url).href },
+  { v: 1.0, src: new URL('@/assets/f10.png', import.meta.url).href }
 ]
 
 function nextBite() {
+  sessionStore.resetSession()
+  localStorage.setItem('biteSession', JSON.stringify(sessionStore.$state))
   sliderValue.value = store.biteSize
   updateImage(sliderValue.value)
   pendingBiteValue.value = sliderValue.value
@@ -64,8 +66,14 @@ function updateImage(val: number) {
 function handleAdjust() {
   sessionStore.resetSession()
   localStorage.setItem('biteSession', JSON.stringify(sessionStore.$state))
-  step.value = 1
+  step.value = 2
 }
+
+function goToFeeding() {
+    nextBite();
+    step.value = 5;
+  }
+
 
 async function handleLanguageAdjust() {
   if (!instruction.value.trim()) {
@@ -75,19 +83,19 @@ async function handleLanguageAdjust() {
   loading.value = true
   error.value = ''
   try {
-    const resp = await axios.post('api/gpt', {
+    const resp = await axios.post('/api/gpt', {
       prompt: `Instruction: "${instruction.value}". Return a single number between 0.0–1.0 (one decimal).`,
-      model: 'gpt-4'
+      biteSize: store.biteSize
     })
-    const content = resp.data.message?.trim()
-    const num = parseFloat(content)
+    const num = resp.data.biteSize;
     if (isNaN(num) || num < 0 || num > 1) {
-      throw new Error(`GPT returned invalid number: "${content}"`)
+      throw new Error(`GPT returned invalid number: "${num}"`)
     }
     sliderValue.value = parseFloat(num.toFixed(1))
     updateImage(sliderValue.value)
     store.biteSize = sliderValue.value
-    step.value = 4
+    instruction.value=""
+    goToFeeding()
   } catch (err: any) {
     error.value = err.response?.data?.error ?? err.message
   } finally {
@@ -111,7 +119,7 @@ async function handleLanguageAdjust() {
       <div v-if="step === 1" class="step-content">
         <h2>Please choose an action</h2>
         <button class="primary large" @click="step = 2">Adjust Bite-size</button>
-        <button class="secondary large" @click="step = 3">Use Last Setting</button>
+        <button class="secondary large" @click="goToFeeding">Go to feeding</button>
       </div>
 
       <div v-if="step === 2" class="step-content">
@@ -147,14 +155,23 @@ async function handleLanguageAdjust() {
             Slide to adjust bite-size (0.0–1.0)
           </div>
         </div>
-        <button class="primary large" @click="step = 4">Finish</button>
+        <button class="primary large" @click="goToFeeding">Finish</button>
       </div>
 
-      <div v-else-if="step === 3 && interfaceMode === 'language'" class="step-content">
+      <div v-if="step === 3 && interfaceMode === 'language'" class="language-interface">
         <h2>Language Interface</h2>
-        <p>Enter instruction (e.g. “make it smaller”)</p>
-        <textarea v-model="instruction" rows="3"></textarea>
-        <button @click="handleLanguageAdjust" :disabled="loading">
+        <p>Enter instruction (e.g. “I want a smaller bite”)</p>
+        <textarea
+          v-model="instruction"
+          rows="6"
+          class="instruction-textarea"
+          placeholder="Type your instruction here..."
+        ></textarea>
+        <button
+          class="primary large submit-btn"
+          @click="handleLanguageAdjust"
+          :disabled="loading"
+        >
           {{ loading ? 'Adjusting…' : 'Submit' }}
         </button>
         <div v-if="error" class="error">{{ error }}</div>
@@ -172,10 +189,14 @@ async function handleLanguageAdjust() {
   </div>
   <div v-if="step === 5" class="step-content">
     <h2>Confirm this bite?</h2>
-    <img :src="pendingImage" alt="preview" class="rice-image" style="max-width: 300px;" />
+    <div class="visualize-container">
+      <div class="image-container">
+        <img :src="pendingImage" alt="preview" class="rice-image" style="max-width: 300px;" />
+      </div>
+    </div>
     <p style="font-size: 1.5rem;">Bite Size: {{ pendingBiteValue.toFixed(1) }}</p>
     <button class="primary large" @click="confirmBite">Confirm</button>
-    <button class="secondary large" @click="step = 4">Cancel</button>
+    <button class="secondary large" @click="step = 1">Cancel</button>
   </div>
 </template>
 
@@ -234,7 +255,15 @@ async function handleLanguageAdjust() {
   max-width: 500px;
   margin: 0 auto;
 }
-
+.visualize-container {
+  background: #fcecd4;
+  border-radius: 20px;
+  padding: 40px 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+}
 .title {
   font-size: 26px;
   font-weight: bold;
@@ -361,5 +390,35 @@ button.finish-btn:hover {
   background-color: #c0392b;
   transform: scale(1.05);
   transition: all 0.2s ease;
+}
+.language-interface {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 600px;
+  margin: auto;
+}
+.instruction-textarea {
+  width: 100%;
+  min-height: 180px; /* larger height */
+  font-size: 1.2rem; /* bigger font size */
+  line-height: 1.4;
+  padding: 1rem;
+  margin-top: 1rem;
+  resize: vertical;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+.submit-btn {
+  margin-top: 1rem; /* button right below textarea */
+}
+button.primary.large {
+  font-size: 1.3rem;
+  padding: 0.8rem 2rem;
+}
+.error {
+  color: #dc3545;
+  margin-top: 0.5rem;
+  font-size: 1rem;
 }
 </style>

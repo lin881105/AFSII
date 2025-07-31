@@ -21,10 +21,12 @@
     "body-parser": "^2.2.0",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "openai": "^5.11.0",
     "openapi": "^1.0.1",
     "pinia": "^3.0.3",
     "vue": "^3.5.18",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "whisper-speech-to-text": "^1.0.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.53.1",

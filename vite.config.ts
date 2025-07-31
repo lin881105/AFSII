@@ -17,14 +17,13 @@ export default defineConfig({
     },
   },
   server: {
-    host: '0.0.0.0',
+    host: '',
     port: 5173,
     proxy: {
       '/api': {
         target: 'http://localhost:3000',   // Replace with your backend host/port
         changeOrigin: true,
         secure: false,
-        rewrite: path => path.replace(/^\/api/, ''), // optional if backend routes start without /api
       }
     }
   }

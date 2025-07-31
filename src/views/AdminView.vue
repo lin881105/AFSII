@@ -31,7 +31,11 @@ function refresh() {
     <div v-if="store.finished">
       <p>User submitted!</p>
       <p>Bite Value: {{ store.biteValue }}</p>
-      <img :src="store.biteImage" alt="Selected" style="max-width: 300px" />
+      <div class="visualize-container">
+        <div class="image-container">
+          <img :src="store.biteImage" alt="Selected" style="max-width: 300px" />
+        </div>
+      </div>
     </div>
     <div v-else>
       <p>Waiting for user to finish...</p>
@@ -87,5 +91,15 @@ function refresh() {
 
 .refresh-btn:hover {
   background-color: #1475c3;
+}
+
+.visualize-container {
+  background: #fcecd4;
+  border-radius: 20px;
+  padding: 40px 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
 }
 </style>
