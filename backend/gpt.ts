@@ -1,12 +1,44 @@
 import OpenAI from "openai";
 import express from "express";
 import dotenv from "dotenv";
+import multer from "multer";
+import { Readable } from "node:stream";
+
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 
+const upload = multer({ storage: multer.memoryStorage() });
+
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+app.post("/api/stt", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No audio file uploaded." });
+    }
+
+    const stream = Readable.from(req.file.buffer);
+    (stream as any).path = req.file.originalname || "audio.webm";
+
+    const result = await openai.audio.transcriptions.create({
+      model: "whisper-1",
+      file: stream as any,
+      // language: "zh",
+      response_format: "json",
+      temperature: 0,
+    });
+
+    const text = (result as any).text || "";
+    if (!text) return res.status(500).json({ error: "Empty transcription." });
+
+    return res.json({ text });
+  } catch (err: any) {
+    console.error("STT error:", err?.response?.data ?? err);
+    return res.status(500).json({ error: err.message });
+  }
+});
 
 app.post("/api/gpt", async (req, res) => {
   const { prompt, biteSize } = req.body as {
@@ -17,12 +49,12 @@ app.post("/api/gpt", async (req, res) => {
   if (!prompt || typeof prompt !== "string") {
     return res.status(400).json({ error: "Missing or invalid 'prompt'." });
   }
-
   if (typeof biteSize !== "number" || biteSize < 0 || biteSize > 1) {
-    return res.status(400).json({ error: "'biteSize' must be a number between 0.0 and 1.0." });
+    return res
+      .status(400)
+      .json({ error: "'biteSize' must be a number between 0.0 and 1.0." });
   }
 
-  // Use GPT to adjust the numeric biteSize
   const systemMsg =
     `User has current bite-size: ${biteSize.toFixed(1)} (0.0–1.0). ` +
     `Based on the prompt: "${prompt}", ` +
@@ -39,21 +71,15 @@ app.post("/api/gpt", async (req, res) => {
       max_tokens: 200,
     });
 
-    console.log("Completion:", completion);
-
     const choice = completion.choices?.[0];
     if (!choice || !choice.message?.content) {
       throw new Error("GPT response missing content");
     }
 
-    const text = completion.choices[0]?.message?.content?.trim() || "";
-    console.log("GPT message content:", JSON.stringify(text));
-    if (!text) {
-      throw new Error("Empty content returned by GPT");
-    }
-    const value = parseFloat(text);
-    console.log("message parsing value:", JSON.stringify(value));
+    const text = choice.message.content.trim();
+    if (!text) throw new Error("Empty content returned by GPT");
 
+    const value = parseFloat(text);
     if (isNaN(value) || value < 0 || value > 1) {
       throw new Error(`GPT returned invalid bite-size: "${text}"`);
     }
@@ -65,5 +91,18 @@ app.post("/api/gpt", async (req, res) => {
   }
 });
 
+
+app.get("/api/health", (_req, res) => {
+  res.json({
+    ok: true,
+    hasKey: Boolean(process.env.OPENAI_API_KEY),
+    port: PORT,
+  });
+});
+
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
-app.listen(PORT, "0.0.0.0", () => console.log(`GPT proxy listening on port ${PORT}`));
+app.listen(PORT, "0.0.0.0", () =>
+  console.log(`GPT proxy listening on port ${PORT}`)
+);
+
+console.log("[gpt] has OPENAI_API_KEY?", Boolean(process.env.OPENAI_API_KEY));
