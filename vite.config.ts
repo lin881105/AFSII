@@ -6,25 +6,18 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 export default defineConfig({
   base: '/AFSII/',
-  plugins: [
-    vue(),
-    vueJsx(),
-    vueDevTools(),
-  ],
+  plugins: [vue(), vueJsx(), vueDevTools()],
   resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    },
+    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   server: {
-    host: '',
-    port: 5173,
+    host: true,
+    allowedHosts: ['afsii.duckdns.org'],
     proxy: {
       '/api': {
-        target: 'http://localhost:3300',   // Replace with your backend host/port
-        changeOrigin: true,
-        secure: false,
+        target: 'http://localhost:3300', // 改成 3300
+        changeOrigin: true
       }
     }
-  }
+  },
 })
