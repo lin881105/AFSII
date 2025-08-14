@@ -203,7 +203,7 @@ async function handleLanguageAdjust() {
           <div class="image-container">
             <img :src="currentImage" alt="rice" class="rice-image" />
           </div>
-          <div class="value-display">{{ sliderValue.toFixed(1) }}</div>
+          <!-- <div class="value-display">{{ sliderValue.toFixed(1) }}</div> -->
           <div class="slider-container">
             <input
               type="range"
@@ -214,14 +214,14 @@ async function handleLanguageAdjust() {
               v-model.number="sliderValue"
               @input="updateImage(sliderValue)"
             />
-            <div class="range-labels">
+            <!-- <div class="range-labels">
               <span>0.0</span>
               <span>0.5</span>
               <span>1.0</span>
-            </div>
+            </div> -->
           </div>
           <div class="instructions">
-            Slide to adjust bite-size (0.0–1.0)
+            Slide to adjust bite-size 
           </div>
         </div>
         <button class="primary large" @click="goToFeeding">Finish</button>
@@ -292,7 +292,7 @@ async function handleLanguageAdjust() {
         <img :src="pendingImage" alt="preview" class="rice-image" style="max-width: 300px;" />
       </div>
     </div>
-    <p style="font-size: 1.5rem;">Bite Size: {{ pendingBiteValue.toFixed(1) }}</p>
+    <!-- <p style="font-size: 1.5rem;">Bite Size: {{ pendingBiteValue.toFixed(1) }}</p> -->
     <button class="primary large" @click="confirmBite">Confirm</button>
     <button class="secondary large" @click="step = 1">Cancel</button>
   </div>
